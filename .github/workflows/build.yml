@@ -1,4 +1,4 @@
-name: workflow to lint, test, and build the project
+name: lint, test, and build the project
 on: push 
 jobs:
     lint:
