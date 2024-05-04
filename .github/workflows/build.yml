@@ -5,7 +5,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         - name: checkout code
-          uses: actions/chechkout@v4
+          uses: actions/checkout@v4
         - name: linting the project
           run: npm run lint
     test:
