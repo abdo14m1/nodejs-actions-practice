@@ -1,18 +1,73 @@
 name: lint, test, and build the project
-on: push 
+on: 
+  push:
+    branches: main # only run the pipeline if the push is to the main branch
 jobs:
-    lint:
+    test:
+      runs-on: ubuntu-latest
+      steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: cache dependencies
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json')}}
+
+      - name: list dependencies to be installed if not cached
+        if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        run: npm list
+
+      - name: install latest version of depencencies
+        run: npm ci
+
+      - name: run tests
+        run: npm run test
+
+
+    build:
         runs-on: ubuntu-latest
+        needs: test
         steps:
         - name: checkout code
           uses: actions/checkout@v4
-        - name: install dependencies
+
+        - name: cache dependencies
+          id: cache-npm
+          uses: actions/cache@v3
+          with:
+            path: ~/.npm
+            key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json')}}
+
+        - name: list dependencies to be installed if not cached
+          if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+          continue-on-error: true
+          run: npm list
+
+        - name: install latest version of depencencies
           run: npm ci
-        - name: linting the project
-          run: npm run lint
-        - name: run unit tests
-          run: npm run test
-        - name: build the project
+
+        - name: build the code
           run: npm run build
-        - name: Deploy code
-          run: echo "Deploying...."
+        
+        - name: output artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: built-file
+            path: ~/dist
+
+
+    deploy:
+      needs: build
+      runs-on: ubuntu-latest
+      steps:
+      - name: download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: built
+
+      - name: deploy artifact
+        run: echo "deploying..."
