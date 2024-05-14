@@ -67,7 +67,7 @@ jobs:
       - name: download artifact
         uses: actions/download-artifact@v4
         with:
-          name: built
+          name: built-file
 
       - name: deploy artifact
         run: echo "deploying..."
